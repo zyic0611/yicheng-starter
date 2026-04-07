@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+spring:
+  redis:
+    host: 127.0.0.1  # 改成你的 Redis 地址
+    port: 6379       # 如果有密码加上 password: xxx
