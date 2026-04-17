@@ -1,8 +1,10 @@
 package com.yicheng.security.filter;
 
-import com.yicheng.security.Authentication.MiniAuthenticationProvider;
-import com.yicheng.security.Authentication.MiniProviderManager;
-import com.yicheng.security.Authentication.TokenAuthenticationProvider;
+import com.yicheng.security.authentication.AuthenticationProvider;
+import com.yicheng.security.authentication.ProviderManager;
+import com.yicheng.security.authentication.TokenAuthenticationProvider;
+import com.yicheng.security.handler.UnifiedSecurityHandler;
+import com.yicheng.security.service.TokenBlacklistService;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -12,25 +14,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MiniFilterChainProxy implements Filter {
+public class FilterChainProxy implements Filter {
 
+    private final TokenBlacklistService blacklistService;
     // 内部维护的虚拟过滤器链
     private final List<Filter> virtualFilters = new ArrayList<>();
 
-    public MiniFilterChainProxy(){
-        List<MiniAuthenticationProvider>providers=new ArrayList<>();//检票员列表
-        providers.add(new TokenAuthenticationProvider());//把token检票员加入列表
-        MiniProviderManager Manager=new MiniProviderManager(providers);//创建一个保安队长
-        //把保安队长和第一个检票员拍发给虚拟过滤链
-        virtualFilters.add(new TokenAuthenticationFilter(Manager));//先验票 token 有没有这个用户
-        virtualFilters.add(new AuthorizationFilter());//再查权限 该用户有没有这个权限
+    // 【核心改动】：只保留这一个构造函数，并把原来的初始化逻辑搬进来
+    public FilterChainProxy(TokenBlacklistService blacklistService) {
+        this.blacklistService = blacklistService;
 
+        // 1. 初始化异常处理器
+        UnifiedSecurityHandler handler = new UnifiedSecurityHandler();
+
+        // 2. 组装检票员列表
+        List<AuthenticationProvider> providers = new ArrayList<>();
+
+        // 【关键点】：创建 Provider 的时候，把接力棒传给它！
+        providers.add(new TokenAuthenticationProvider(this.blacklistService));
+
+        // 3. 创建保安队长
+        ProviderManager manager = new ProviderManager(providers);
+
+        // 4. 按顺序填充虚拟过滤链
+        virtualFilters.add(new SecurityContextHolderFilter());    // 第一层：清理者
+        virtualFilters.add(new ExceptionTranslationFilter(handler, handler)); // 第二层：异常捕获
+        virtualFilters.add(new TokenAuthenticationFilter(manager)); // 第三层：Token校验（内含保安队长）
+        virtualFilters.add(new AuthorizationFilter());            // 第四层：基础鉴权
     }
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
                          FilterChain chain)throws IOException, ServletException {
-        System.out.println("🚨 [大管家] 成功拦截请求！当前手下保安数量: " + virtualFilters.size());
 
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;

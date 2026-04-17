@@ -1,11 +1,11 @@
-package com.yicheng.security.Authentication;
+package com.yicheng.security.authentication;
 
 //校验员接口
-public interface MiniAuthenticationProvider {
+public interface AuthenticationProvider {
     //执行真正的校验逻辑
 
     // 核心方法：执行真正的校验逻辑
-    MiniAuthentication authenticate(MiniAuthentication authentication);
+    Authentication authenticate(Authentication authentication);
 
     // 策略匹配：判断当前这个 Provider 能不能处理这种类型的票据
     boolean supports(Class<?> authenticationType);

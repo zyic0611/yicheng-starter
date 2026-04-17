@@ -1,21 +1,21 @@
-package com.yicheng.security.Authentication;
+package com.yicheng.security.authentication;
 
 import java.util.List;
 
-public class MiniProviderManager implements MiniAuthenticationManager{
+public class ProviderManager implements AuthenticationManager {
 
-    private final List<MiniAuthenticationProvider> providers;//检票员列表
+    private final List<AuthenticationProvider> providers;//检票员列表
 
-    public MiniProviderManager(List<MiniAuthenticationProvider> providers) {
+    public ProviderManager(List<AuthenticationProvider> providers) {
         this.providers = providers;
     }
 
     @Override
-    public MiniAuthentication authenticate(MiniAuthentication authentication) {
-        for(MiniAuthenticationProvider provider : providers) {
+    public Authentication authenticate(Authentication authentication) {
+        for(AuthenticationProvider provider : providers) {
             if (provider.supports(authentication.getClass())) {
                 //如果由一个检票员能处理
-                MiniAuthentication result = provider.authenticate(authentication);
+                Authentication result = provider.authenticate(authentication);
                 if (result != null && result.isAuthenticated()) {
                     return result; // 认证成功，直接返回盖了章的票据
                 }

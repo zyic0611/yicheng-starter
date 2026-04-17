@@ -2,20 +2,20 @@ package com.yicheng.security;
 
 //上下文拥有者
 
-import com.yicheng.security.Authentication.MiniAuthentication;
+import com.yicheng.security.authentication.Authentication;
 
 public class SecurityContextHolder {
-    private static final ThreadLocal<MiniAuthentication> CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<Authentication> CONTEXT = new ThreadLocal<>();
 
-    public static MiniAuthentication getAuthentication() {
+    public static Authentication getAuthentication() {
         return CONTEXT.get();
     }
 
-    public static void setAuthentication(MiniAuthentication  authentication) {
+    public static void setAuthentication(Authentication authentication) {
         CONTEXT.set(authentication);
     }
 
-    public static void removeAuthentication() {//清理上下文
+    public static void clearContext() {//清理上下文
         CONTEXT.remove();
     }
 

@@ -7,6 +7,11 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserDetail {
     private String username;
-    private String role; // 角色，比如 "Admin", "User"
-    // 未来还可以加：密码、账号是否过期、账号是否被锁定等字段
+    private String role;
+    private String password;
+
+    public UserDetail(String username, String role) {
+        this.username = username;
+        this.role = role;
+    }
 }
